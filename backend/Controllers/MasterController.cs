@@ -167,5 +167,51 @@ namespace backend.Controllers
                 return StatusCode(500, new { error = "Ошибка сервера при создании документа", details = ex.Message });
             }
         }
+
+        // PUT: api/v1/master/{id}
+        [HttpPut("{id}")]
+        public async Task<ActionResult<MasterGetDto>> UpdateMaster(int id, MasterUpdateDto updateDto)
+        {
+            try
+            {
+                var master = await _context.Masters.FindAsync(id);
+
+                if (master == null)
+                {
+                    return NotFound(new { error = $"Документ с ID {id} не найден" });
+                }
+
+                if (await _context.Masters.AnyAsync(m => m.Number == updateDto.Number && m.Id != id))
+                {
+                    var errorMessage = $"Документ с номером '{updateDto.Number}' уже существует";
+                    await _context.LogErrorToBd("UpdateMaster", new InvalidOperationException(errorMessage), "Master", id.ToString(), HttpContext.Connection.RemoteIpAddress?.ToString());
+                    return Conflict(new { error = errorMessage });
+                }
+
+                master.Number = updateDto.Number;
+                master.Date = updateDto.Date;
+                master.Note = updateDto.Note;
+                master.UpdatedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                var result = new MasterGetDto
+                {
+                    Id = master.Id,
+                    Number = master.Number,
+                    Date = master.Date,
+                    Amount = master.Amount,
+                    Note = master.Note
+                };
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                await _context.LogErrorToBd("UpdateMaster", ex, "Master", id.ToString(), HttpContext.Connection.RemoteIpAddress?.ToString());
+                return StatusCode(500, new { error = "Ошибка сервера при обновлении документа", details = ex.Message });
+            }
+        }
+
     }
 }
