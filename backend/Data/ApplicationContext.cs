@@ -26,8 +26,8 @@ namespace backend.Data
                 entity.Property(m => m.Date).IsRequired();
                 entity.Property(m => m.Amount).HasColumnType("decimal(18,2)");
                 entity.Property(m => m.Note).HasMaxLength(500);
-                entity.Property(m => m.CreatedAt).HasDefaultValueSql("TIMEZONE('utc', NOW())");
-                entity.Property(m => m.UpdatedAt).HasDefaultValueSql("TIMEZONE('utc', NOW())");
+                entity.Property(m => m.CreatedAt).HasColumnType("timestamp");
+                entity.Property(m => m.UpdatedAt).HasColumnType("timestamp");
             });
 
             modelBuilder.Entity<Detail>(entity =>
@@ -35,8 +35,8 @@ namespace backend.Data
                 entity.HasKey(d => d.Id);
                 entity.Property(d => d.Name).IsRequired().HasMaxLength(200);
                 entity.Property(d => d.Amount).HasColumnType("decimal(18,2)");
-                entity.Property(d => d.CreatedAt).HasDefaultValueSql("TIMEZONE('utc', NOW())");
-                entity.Property(d => d.UpdatedAt).HasDefaultValueSql("TIMEZONE('utc', NOW())");
+                entity.Property(d => d.CreatedAt).HasColumnType("timestamp");
+                entity.Property(d => d.UpdatedAt).HasColumnType("timestamp");
 
 
                 entity.HasOne(d => d.Master)
@@ -54,7 +54,7 @@ namespace backend.Data
                 entity.Property(e => e.EntityType).HasMaxLength(50);
                 entity.Property(e => e.EntityId).HasMaxLength(50);
                 entity.Property(e => e.IpAddress).HasMaxLength(45);
-                entity.Property(e => e.Timestamp).HasDefaultValueSql("TIMEZONE('utc', NOW())");
+                entity.Property(e => e.Timestamp).HasColumnType("timestamp");
             });
         }
 

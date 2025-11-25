@@ -2,6 +2,8 @@ using backend.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers()
