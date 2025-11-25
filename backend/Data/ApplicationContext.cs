@@ -59,7 +59,7 @@ namespace backend.Data
             });
         }
 
-        public async Task LogError(string userAction, Exception exception, string entityType, string? entityId = null, string? ipAddress = null)
+        public async Task LogErrorToBd(string userAction, Exception exception, string entityType, string? entityId = null, string? ipAddress = null)
         {
             try
             {

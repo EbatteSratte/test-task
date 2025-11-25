@@ -1,5 +1,6 @@
 ﻿using backend.Data;
 using backend.Dtos;
+using backend.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -97,7 +98,73 @@ namespace backend.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = "Ошибка сервера", details = ex.Message });
+                return StatusCode(500, new { error = "Ошибка сервера при получении документа с полной информацией", details = ex.Message });
+            }
+        }
+
+        // POST: api/v1/master
+        [HttpPost]
+        public async Task<ActionResult<MasterGetByIdDto>> CreateMaster(MasterCreateDto createDto)
+        {
+            try
+            {
+                if (await _context.Masters.AnyAsync(m => m.Number == createDto.Number))
+                {
+                    var errorMessage = $"Документ с номером '{createDto.Number}' уже существует";
+                    await _context.LogErrorToBd("CreateMaster", new InvalidOperationException(errorMessage), "Master", createDto.Number, HttpContext.Connection.RemoteIpAddress?.ToString());
+                    return Conflict(new { error = errorMessage });
+                }
+
+                var master = new Master
+                {
+                    Number = createDto.Number,
+                    Date = createDto.Date,
+                    Note = createDto.Note,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                if (createDto.Details != null && createDto.Details.Any())
+                {
+                    foreach (var detailDto in createDto.Details)
+                    {
+                        var detail = new Detail
+                        {
+                            Name = detailDto.Name,
+                            Amount = detailDto.Amount,
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        };
+                        master.Details.Add(detail);
+                    }
+
+                    master.Amount = master.Details.Sum(d => d.Amount);
+                }
+
+                _context.Masters.Add(master);
+                await _context.SaveChangesAsync();
+
+                var result = new MasterGetByIdDto
+                {
+                    Id = master.Id,
+                    Number = master.Number,
+                    Date = master.Date,
+                    Amount = master.Amount,
+                    Note = master.Note,
+                    Details = master.Details.Select(d => new DetailDto
+                    {
+                        Id = d.Id,
+                        Name = d.Name,
+                        Amount = d.Amount
+                    }).ToList()
+                };
+
+                return CreatedAtAction(nameof(GetById), new { id = master.Id }, result); ;
+            }
+            catch (Exception ex)
+            {
+                await _context.LogErrorToBd("CreateMaster", ex, "Master", createDto.Number, HttpContext.Connection.RemoteIpAddress?.ToString());
+                return StatusCode(500, new { error = "Ошибка сервера при создании документа", details = ex.Message });
             }
         }
     }
