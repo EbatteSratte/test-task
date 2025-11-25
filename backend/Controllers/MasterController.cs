@@ -62,5 +62,43 @@ namespace backend.Controllers
 
             return Ok(result);
         }
+
+        // GET: api/v1/master/{id}
+        [HttpGet("{id}")]
+        public async Task<ActionResult<MasterGetByIdDto>> GetById(int id)
+        {
+            try
+            {
+                var masterDto = await _context.Masters
+                    .AsNoTracking()
+                    .Where(m => m.Id == id)
+                    .Select(m => new MasterGetByIdDto
+                    {
+                        Id = m.Id,
+                        Number = m.Number,
+                        Date = m.Date,
+                        Amount = m.Amount,
+                        Note = m.Note,
+                        Details = m.Details.Select(d => new DetailDto
+                        {
+                            Id = d.Id,
+                            Name = d.Name,
+                            Amount = d.Amount
+                        }).ToList()
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (masterDto == null)
+                {
+                    return NotFound(new { error = $"Документ с id {id} не найден" });
+                }
+
+                return Ok(masterDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Ошибка сервера", details = ex.Message });
+            }
+        }
     }
 }
