@@ -1,0 +1,30 @@
+# Build artifacts
+bin/
+obj/
+*.user
+
+# IDE files
+.vs/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# NuGet packages
+*.nupkg
+packages/
+
+# Docker files
+Dockerfile
+.dockerignore
