@@ -1,0 +1,5 @@
+backend/bin/
+backend/obj/
+backend/appsettings.Development.json
+backend/backend.csproj.user
+backend/.vs/
