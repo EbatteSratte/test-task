@@ -213,5 +213,31 @@ namespace backend.Controllers
             }
         }
 
+        // DELETE: api/v1/master/{id}
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteMaster(int id)
+        {
+            try
+            {
+                var master = await _context.Masters
+                    .Include(m => m.Details)
+                    .FirstOrDefaultAsync(m => m.Id == id);
+
+                if (master == null)
+                {
+                    return NotFound(new { error = $"Документ с ID {id} не найден" });
+                }
+
+                _context.Masters.Remove(master);
+                await _context.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                await _context.LogErrorToBd("DeleteMaster", ex, "Master", id.ToString(), HttpContext.Connection.RemoteIpAddress?.ToString());
+                return StatusCode(500, new { error = "Ошибка сервера при удалении документа", details = ex.Message });
+            }
+        }
     }
 }
