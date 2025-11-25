@@ -22,15 +22,15 @@ namespace backend.Controllers
         public async Task<ActionResult<IEnumerable<ErrorLog>>> GetErrorLogs(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 50,
-            [FromQuery] string? errorType = null,
+            [FromQuery] string? entityId = null,
             [FromQuery] DateTime? fromDate = null,
             [FromQuery] DateTime? toDate = null)
         {
             var query = _context.ErrorLogs.AsQueryable();
 
-            if (!string.IsNullOrEmpty(errorType))
+            if (!string.IsNullOrEmpty(entityId))
             {
-                query = query.Where(e => e.ErrorType.Contains(errorType));
+                query = query.Where(e => e.EntityId != null && e.EntityId.Contains(entityId));
             }
 
             if (fromDate.HasValue)
