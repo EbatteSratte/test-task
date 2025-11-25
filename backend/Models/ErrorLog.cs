@@ -35,10 +35,6 @@ namespace backend.Models
         [Column("Timestamp")]
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
         
-        [StringLength(50)]
-        [Column("UserId")]
-        public string? UserId { get; set; }
-        
         [StringLength(45)]
         [Column("IpAddress")]
         public string? IpAddress { get; set; }

@@ -54,10 +54,33 @@ namespace backend.Data
                 entity.Property(e => e.UserAction).HasMaxLength(100);
                 entity.Property(e => e.EntityType).HasMaxLength(50);
                 entity.Property(e => e.EntityId).HasMaxLength(50);
-                entity.Property(e => e.UserId).HasMaxLength(50);
                 entity.Property(e => e.IpAddress).HasMaxLength(45);
                 entity.Property(e => e.Timestamp).HasDefaultValueSql("TIMEZONE('utc', NOW())");
             });
+        }
+
+        public async Task LogErrorAsync(string userAction, Exception exception, string entityType, string? entityId = null, string? ipAddress = null)
+        {
+            try
+            {
+                var errorLog = new ErrorLog
+                {
+                    ErrorType = exception.GetType().Name,
+                    ErrorMessage = exception.Message,
+                    StackTrace = exception.StackTrace,
+                    UserAction = userAction,
+                    EntityType = entityType,
+                    EntityId = entityId,
+                    Timestamp = DateTime.UtcNow,
+                    IpAddress = ipAddress
+                };
+
+                ErrorLogs.Add(errorLog);
+                await SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+            }
         }
     }
 }
