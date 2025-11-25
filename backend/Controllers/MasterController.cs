@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace backend.Controllers
 {
     [ApiController]
-    [Route("api/v1/detail")]
+    [Route("api/v1/master")]
     public class MasterController : ControllerBase
     {
         private readonly ApplicationContext _context;
@@ -16,12 +16,40 @@ namespace backend.Controllers
             _context = context;
         }
 
+        // GET: api/v1/master?sortBy=date&sortOrder=desc&search=DOC
         [HttpGet]
-        public async Task<ActionResult<List<MasterGetDto>>> GetAllMasters()
+        public async Task<ActionResult<List<MasterGetDto>>> GetAllMasters(
+            [FromQuery] string? search = null,
+            [FromQuery] string sortBy = "date",
+            [FromQuery] string sortOrder = "desc")
         {
-            var query = await _context.Masters
-                .AsNoTracking()
-                .OrderByDescending(m => m.Date)
+            var query = _context.Masters.AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchLower = search.ToLower();
+                query = query.Where(m =>
+                    m.Number.ToLower().Contains(searchLower) ||
+                    (m.Note != null && m.Note.ToLower().Contains(searchLower))
+                );
+            }
+
+            query = sortBy.ToLower() switch
+            {
+                "number" => sortOrder.ToLower() == "asc"
+                    ? query.OrderBy(m => m.Number)
+                    : query.OrderByDescending(m => m.Number),
+
+                "amount" => sortOrder.ToLower() == "asc"
+                    ? query.OrderBy(m => m.Amount)
+                    : query.OrderByDescending(m => m.Amount),
+
+                "date" or _ => sortOrder.ToLower() == "asc"
+                    ? query.OrderBy(m => m.Date)
+                    : query.OrderByDescending(m => m.Date)
+            };
+
+            var result = await query
                 .Select(m => new MasterGetDto
                 {
                     Id = m.Id,
@@ -30,9 +58,9 @@ namespace backend.Controllers
                     Amount = m.Amount,
                     Note = m.Note
                 })
-                .ToListAsync(); 
+                .ToListAsync();
 
-            return Ok(query);
+            return Ok(result);
         }
     }
 }
