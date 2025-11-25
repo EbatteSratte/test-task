@@ -10,7 +10,7 @@ namespace backend.Models
         public int Id { get; set; }
         
         [Required]
-        [StringLength(50)]
+        [StringLength(200)]
         [Column("Number")]
         public string Number { get; set; } = string.Empty;
         

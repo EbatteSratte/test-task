@@ -38,7 +38,6 @@ namespace backend.Data
                 entity.Property(d => d.CreatedAt).HasDefaultValueSql("TIMEZONE('utc', NOW())");
                 entity.Property(d => d.UpdatedAt).HasDefaultValueSql("TIMEZONE('utc', NOW())");
 
-                entity.HasIndex(d => new { d.MasterId, d.Name }).IsUnique();
 
                 entity.HasOne(d => d.Master)
                     .WithMany(m => m.Details)
