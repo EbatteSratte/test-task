@@ -37,6 +37,10 @@ namespace backend.Controllers
 
             query = sortBy.ToLower() switch
             {
+                "id" => sortOrder.ToLower() == "asc"
+                    ? query.OrderBy(m => m.Id)
+                    : query.OrderByDescending(m => m.Id),
+
                 "number" => sortOrder.ToLower() == "asc"
                     ? query.OrderBy(m => m.Number)
                     : query.OrderByDescending(m => m.Number),
@@ -80,6 +84,8 @@ namespace backend.Controllers
                         Date = m.Date,
                         Amount = m.Amount,
                         Note = m.Note,
+                        CreatedAt = m.CreatedAt,
+                        UpdatedAt = m.UpdatedAt,
                         Details = m.Details.Select(d => new DetailDto
                         {
                             Id = d.Id,
