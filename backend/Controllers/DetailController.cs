@@ -64,38 +64,44 @@ namespace backend.Controllers
         [HttpPost("{masterId}")]
         public async Task<ActionResult> CreateDetails(int masterId, [FromBody] DetailBulkCreateDto request)
         {
-
-            var master = await _context.Masters.FindAsync(masterId);
-
-            if (master == null)
+            try
             {
-                return NotFound(new { error = $"Документ с id {masterId} не найден" });
+                var master = await _context.Masters.FindAsync(masterId);
+
+                if (master == null)
+                {
+                    return NotFound(new { error = $"Документ с id {masterId} не найден" });
+                }
+
+                var details = request.Details.Select(d => new Detail
+                {
+                    Name = d.Name,
+                    Amount = d.Amount,
+                    MasterId = masterId,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                }).ToList();
+
+                await _context.Details.AddRangeAsync(details);
+                await _context.SaveChangesAsync();
+
+                await RecalculateMasterAmountAsync(masterId);
+
+                var createdDetails = details.Select(d => new DetailGetDto
+                {
+                    Id = d.Id,
+                    Name = d.Name,
+                    Amount = d.Amount,
+                    MasterId = d.MasterId
+                }).ToList();
+
+                return Ok(createdDetails);
             }
-
-            var details = request.Details.Select(d => new Detail
+            catch (Exception ex)
             {
-                Name = d.Name,
-                Amount = d.Amount,
-                MasterId = masterId,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            }).ToList();
-
-            await _context.Details.AddRangeAsync(details);
-
-            await RecalculateMasterAmountAsync(masterId);
-
-            await _context.SaveChangesAsync();
-
-            var createdDetails = details.Select(d => new DetailGetDto
-            {
-                Id = d.Id,
-                Name = d.Name,
-                Amount = d.Amount,
-                MasterId = d.MasterId
-            }).ToList();
-
-            return Ok(createdDetails);
+                await _context.LogErrorToBd("CreateDetails", ex, "Detail", masterId.ToString(), HttpContext.Connection.RemoteIpAddress?.ToString());
+                return StatusCode(500, new { error = "Ошибка сервера при создании спецификаций", details = ex.Message });
+            }
         }
 
         // PUT: api/v1/detail/{id}
